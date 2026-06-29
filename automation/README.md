@@ -42,20 +42,38 @@ moment de l'event :
 3. Puis un nœud **Code** (JavaScript) qui transforme les lignes en HTML de tableau :
 
    ```js
-   const rows = $input.all()[0].json; // tableau de simulations Supabase
-   const fmtEur = (n) => Number(n).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+   const rows = $input.all().map((item) => item.json); // une ligne Supabase par item
 
-   const rowsHtml = rows.map((r) => `
-     <tr style="border-top:1px solid #232b45;color:#f4f6fb;">
-       <td style="padding:10px 12px;">${r.created_at.slice(0, 10)}</td>
-       <td style="padding:10px 12px;">${r.coin_symbol}</td>
-       <td style="padding:10px 12px;">${r.frequency}</td>
-       <td style="padding:10px 12px;text-align:right;">${fmtEur(r.invested)}</td>
-       <td style="padding:10px 12px;text-align:right;color:#f5c542;">${fmtEur(r.final_capital)}</td>
-       <td style="padding:10px 12px;text-align:right;color:${r.performance_pct >= 0 ? "#22c55e" : "#f04438"};">
-         ${r.performance_pct >= 0 ? "+" : ""}${Number(r.performance_pct).toFixed(2)} %
-       </td>
-     </tr>`).join("");
+   const fmtEur = (n) => Number(n).toLocaleString("fr-FR", { style: "currency", currency: "EUR" });
+   const fmtDate = (iso) => new Date(iso).toLocaleDateString("fr-FR");
+   const FREQUENCY_LABELS = {
+     once: "Investissement unique",
+     daily: "Par jour",
+     weekly: "Par semaine",
+     monthly: "Par mois",
+   };
+
+   const rowsHtml = rows
+     .map((r, i) => {
+       const positive = r.performance_pct >= 0;
+       const bg = i % 2 === 0 ? "#131a30" : "#10162a";
+       const badgeBg = positive ? "#0d2818" : "#2d1416";
+       const badgeColor = positive ? "#22c55e" : "#f04438";
+       return (
+         `<tr style="background:${bg};border-top:1px solid #232b45;color:#f4f6fb;font-size:13px;">` +
+         `<td style="padding:12px 14px;white-space:nowrap;">${fmtDate(r.created_at)}</td>` +
+         `<td style="padding:12px 14px;font-weight:600;">${r.coin_symbol}</td>` +
+         `<td style="padding:12px 14px;color:#8893ab;">${FREQUENCY_LABELS[r.frequency] || r.frequency}</td>` +
+         `<td style="padding:12px 14px;text-align:right;">${fmtEur(r.invested)}</td>` +
+         `<td style="padding:12px 14px;text-align:right;color:#f5c542;font-weight:600;">${fmtEur(r.final_capital)}</td>` +
+         `<td style="padding:12px 14px;text-align:right;">` +
+         `<span style="display:inline-block;padding:3px 10px;border-radius:999px;background:${badgeBg};color:${badgeColor};font-weight:600;font-size:12px;">` +
+         `${positive ? "+" : ""}${Number(r.performance_pct).toFixed(2)} %` +
+         `</span></td>` +
+         `</tr>`
+       );
+     })
+     .join("");
 
    return [{ json: {
      leadEmail: $('Webhook').first().json.body.payload.leadEmail,
