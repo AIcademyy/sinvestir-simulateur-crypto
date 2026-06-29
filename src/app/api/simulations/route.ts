@@ -24,14 +24,17 @@ export async function GET() {
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
-  const result = body as (SimulationResult & { frequency: string; startDate: string; endDate: string }) | null;
+  const result = body as
+    | (SimulationResult & { frequency: string; startDate: string; endDate: string; leadEmail?: string })
+    | null;
 
   if (!result?.coin?.id) {
     return NextResponse.json({ error: "Résultat de simulation invalide" }, { status: 400 });
   }
 
   // This is exactly the kind of event an n8n workflow would consume to sync
-  // a lead/CRM record (HubSpot) or append a row to a reporting sheet.
+  // a lead/CRM record (HubSpot), append a row to a reporting sheet, or send
+  // the lead an email report (see automation/lead-report-email.html).
   emitAutomationEvent("simulation.completed", { ...result });
 
   const supabase = getSupabase();
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
     acquired: result.acquired,
     final_capital: result.finalCapital,
     performance_pct: result.performancePct,
+    lead_email: result.leadEmail || null,
   });
 
   if (error) {

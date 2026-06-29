@@ -36,6 +36,8 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [reportStatus, setReportStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
 
   useEffect(() => {
     fetch("/api/coins")
@@ -91,6 +93,22 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
     }, 1200);
     return () => clearTimeout(timer);
   }, [result, frequency, startDate, endDate]);
+
+  async function sendReport() {
+    if (!result || !email) return;
+    setReportStatus("sending");
+    try {
+      const r = await fetch("/api/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...result, frequency, startDate, endDate, leadEmail: email }),
+      });
+      if (!r.ok) throw new Error();
+      setReportStatus("sent");
+    } catch {
+      setReportStatus("error");
+    }
+  }
 
   const investedShare = result && result.finalCapital > 0
     ? Math.min(100, (result.invested / Math.max(result.finalCapital, result.invested)) * 100)
@@ -310,6 +328,37 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
+
+                <div className="mt-5 pt-4 border-t border-[var(--border)] flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="email"
+                    placeholder="votre@email.com"
+                    className="input-field flex-1"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setReportStatus("idle");
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={sendReport}
+                    disabled={!email || reportStatus === "sending"}
+                    className="rounded-lg bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {reportStatus === "sending" ? "Envoi…" : "Recevoir mon rapport par email"}
+                  </button>
+                </div>
+                {reportStatus === "sent" && (
+                  <p className="mt-2 text-xs text-[var(--success)]">
+                    Demande envoyée — vous recevrez votre rapport par email.
+                  </p>
+                )}
+                {reportStatus === "error" && (
+                  <p className="mt-2 text-xs text-[var(--danger)]">
+                    Échec de l&apos;envoi, réessayez.
+                  </p>
+                )}
               </>
             )}
 

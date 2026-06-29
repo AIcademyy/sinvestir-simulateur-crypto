@@ -86,6 +86,25 @@ l'état de promesse dans ce README, deux briques tournent réellement dans le co
 ajouter `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, et optionnellement `AUTOMATION_WEBHOOK_URL`
 (une URL de Webhook n8n). Aucun changement de code nécessaire.
 
+Ces deux briques sont déployées et vérifiées en bout en bout sur la démo : une simulation
+sauvegardée déclenche bien une ligne Supabase **et** un event reçu côté n8n.
+
+### Capture de lead + rapport email (bonus 2)
+
+Le bouton **"Recevoir mon rapport par email"** sous les résultats est un opt-in explicite : il
+réenvoie la simulation courante avec l'email saisi (`leadEmail`), qui est stocké dans la colonne
+`lead_email` et propagé dans l'event d'automatisation. Le dossier [`automation/`](./automation)
+contient les deux livrables prêts à brancher sur le workflow n8n existant :
+
+- [`google-sheet-headers.csv`](./automation/google-sheet-headers.csv) — en-têtes à coller dans un
+  Google Sheet vierge, plus le mapping de colonnes pour un nœud n8n `Google Sheets → Append Row`.
+- [`lead-report-email.html`](./automation/lead-report-email.html) — template d'email (mêmes
+  couleurs que le simulateur) listant l'historique complet des simulations du lead, à coller dans
+  un nœud n8n `Send Email`.
+- [`automation/README.md`](./automation/README.md) — le câblage n8n complet (Webhook → IF →
+  Supabase `Get All Rows` filtré par `lead_email` → Code → Sheets / Email), avec le code du nœud
+  Code qui génère les lignes du tableau HTML.
+
 ## Pour une intégration réelle dans la suite
 
 - Le composant `Simulator` n'a aucune dépendance à l'auth ou à Supabase : il suffirait de le

@@ -1,0 +1,73 @@
+<!--
+  Template à coller dans le paramètre "HTML" d'un nœud n8n "Send Email"
+  (ou un nœud HubSpot "Send transactional email"). Les {{ }} sont des
+  expressions n8n, résolues à l'exécution :
+    - {{ $json.leadEmail }}        : destinataire
+    - {{ $json.totalSimulations }} : nombre de simulations du lead
+    - {{ $json.rowsHtml }}         : lignes de tableau générées par le nœud
+                                      Code en amont (voir automation/README.md)
+-->
+<div style="background:#0a0e1a;padding:32px 0;font-family:Lexend,Arial,sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0"
+          style="background:#131a30;border:1px solid #232b45;border-radius:16px;overflow:hidden;">
+          <tr>
+            <td style="background:linear-gradient(90deg,#0049c6,#04265f);padding:24px 32px;">
+              <span style="color:#fff;font-size:14px;font-weight:600;letter-spacing:0.05em;">
+                S'INVESTIR &middot; SIMULATEURS
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px;">
+              <h1 style="color:#f4f6fb;font-size:22px;margin:0 0 8px;">
+                Votre rapport de simulation crypto
+              </h1>
+              <p style="color:#8893ab;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                Voici un récapitulatif de vos {{ $json.totalSimulations }} simulation(s) réalisée(s)
+                sur le simulateur crypto S'investir. Ces estimations s'appuient sur des données de
+                marché historiques et ne constituent pas un conseil en investissement.
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                style="border-collapse:collapse;font-size:13px;">
+                <thead>
+                  <tr style="background:#10162a;color:#8893ab;text-align:left;">
+                    <th style="padding:10px 12px;">Date</th>
+                    <th style="padding:10px 12px;">Actif</th>
+                    <th style="padding:10px 12px;">Fréquence</th>
+                    <th style="padding:10px 12px;text-align:right;">Investi</th>
+                    <th style="padding:10px 12px;text-align:right;">Capital final</th>
+                    <th style="padding:10px 12px;text-align:right;">Perf.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {{ $json.rowsHtml }}
+                </tbody>
+              </table>
+
+              <div style="margin-top:28px;text-align:center;">
+                <a href="https://simulateurs.sinvestir.fr"
+                  style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;
+                  padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+                  Lancer une nouvelle simulation
+                </a>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 32px;border-top:1px solid #232b45;">
+              <p style="color:#8893ab;font-size:11px;margin:0;">
+                Vous recevez cet email car vous avez demandé un rapport sur
+                simulateurs.sinvestir.fr. Les performances passées ne préjugent pas des
+                performances futures ; les cryptoactifs sont des actifs très volatils.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

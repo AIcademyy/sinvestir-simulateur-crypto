@@ -13,7 +13,8 @@ create table if not exists public.simulations (
   invested numeric not null,
   acquired numeric not null,
   final_capital numeric not null,
-  performance_pct numeric not null
+  performance_pct numeric not null,
+  lead_email text
 );
 
 alter table public.simulations enable row level security;
