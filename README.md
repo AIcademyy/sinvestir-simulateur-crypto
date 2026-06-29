@@ -18,6 +18,8 @@ Aucune clé d'API n'est nécessaire (CoinGecko public API).
 - `/` — page complète, dans la mise en page de la suite (sidebar + header, comme `simulateurs.sinvestir.fr`).
 - `/embed` — version dépouillée du même composant, sans sidebar ni header, pensée pour être chargée
   dans une `<iframe>` depuis `sinvestir.fr`.
+- `/mes-simulations` — historique des simulations, lien réel dans la sidebar (pas juste un libellé
+  statique). Fonctionne en lecture vide tant que Supabase n'est pas configuré (voir plus bas).
 
 ## Ce que fait le simulateur
 
@@ -35,8 +37,7 @@ Reprend la logique du simulateur d'origine :
 ## Partis pris techniques
 
 - **Next.js (App Router) + TypeScript + Tailwind CSS** — alignement direct avec la stack interne
-  S'investir (Next.js, Vercel). Pas de Supabase/n8n ici : ce test est un outil de calcul stateless,
-  sans besoin de persistance ni d'automatisation côté back-office.
+  S'investir (Next.js, Vercel).
 - **CoinGecko API publique** comme source de prix historiques — gratuite, sans clé, couvre des
   milliers d'actifs. Limite connue et assumée : le plan gratuit restreint l'historique aux **365
   derniers jours** (le sélecteur de date l'impose côté UI, et l'API renvoie une erreur explicite
@@ -57,6 +58,34 @@ Reprend la logique du simulateur d'origine :
   `simulateurs.sinvestir.fr` (capture d'écran de la page d'accueil, palette extraite du bundle
   CSS Nuxt UI du site).
 
+## Bonus — persistance Supabase & point d'automatisation
+
+Le brief précise que les vraies missions porteront sur des outils internes, des agents IA et des
+automatisations (HubSpot/WooCommerce/Sheets…), pas sur des simulateurs. Plutôt que de laisser ça à
+l'état de promesse dans ce README, deux briques tournent réellement dans le code :
+
+1. **Persistance Supabase** (`src/lib/supabase.ts`, `supabase/schema.sql`, `/api/simulations`) —
+   chaque simulation "settled" (l'utilisateur arrête de bouger les curseurs) est sauvegardée dans
+   une table `simulations`, et `/mes-simulations` l'affiche. Ça transforme l'item "Mes simulations"
+   de la sidebar — présent dans le design d'origine mais sans contenu — en fonctionnalité réelle.
+   Le client Supabase est créé de façon paresseuse et renvoie `null` si les variables d'env
+   `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` ne sont pas définies : l'app continue de fonctionner
+   sans persistance (c'est l'état du déploiement de démo tel que livré), elle ne plante jamais faute
+   de config.
+
+2. **Point d'automatisation** (`src/lib/automation.ts`) — à chaque simulation sauvegardée,
+   `emitAutomationEvent("simulation.completed", …)` poste le payload complet (en fire-and-forget,
+   sans jamais bloquer ni faire échouer la requête) vers `AUTOMATION_WEBHOOK_URL` si elle est
+   définie. C'est typiquement le **Webhook node d'un workflow n8n** : on y branche par exemple un
+   nœud HubSpot (créer/mettre à jour un contact taggé "a simulé du Bitcoin") ou un nœud Google
+   Sheets (ligne de reporting par simulation), sans toucher au code de l'app — exactement le genre
+   d'automatisation interne mentionné dans le brief.
+
+**Pour activer ces deux briques** : créer un projet Supabase gratuit, exécuter
+`supabase/schema.sql` dans son éditeur SQL, puis dans Vercel → Settings → Environment Variables,
+ajouter `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, et optionnellement `AUTOMATION_WEBHOOK_URL`
+(une URL de Webhook n8n). Aucun changement de code nécessaire.
+
 ## Pour une intégration réelle dans la suite
 
 - Le composant `Simulator` n'a aucune dépendance à l'auth ou à Supabase : il suffirait de le
@@ -70,10 +99,10 @@ Reprend la logique du simulateur d'origine :
 
 ## Suggestions d'amélioration pour S'investir
 
-- **Sauvegarde des simulations** ("Mes simulations" existe déjà dans la sidebar) : permettre de
-  nommer et comparer plusieurs scénarios côte à côte (ex. DCA mensuel vs. lump sum) sur un même
-  actif — c'est la question que se pose naturellement tout utilisateur après une première
-  simulation.
+- **Comparaison de scénarios sauvegardés** : la sauvegarde existe désormais (voir section bonus
+  ci-dessus) — l'étape suivante logique est de permettre de nommer 2-3 simulations et de les
+  comparer côte à côte (ex. DCA mensuel vs. lump sum sur le même actif), plutôt que de les lister
+  une par une.
 - **Comparateur multi-actifs** : superposer 2-3 cryptos (ou crypto vs. ETF/PEA) sur le même
   graphique, pour répondre à "j'aurais dû investir où ?" sans ressaisir la simulation trois fois.
 - **Partage/export** : un lien public (paramètres encodés dans l'URL) ou export PDF du résultat,
@@ -85,4 +114,5 @@ Reprend la logique du simulateur d'origine :
 
 ## Stack
 
-Next.js · TypeScript · Tailwind CSS · Recharts · CoinGecko API
+Next.js · TypeScript · Tailwind CSS · Recharts · CoinGecko API · Supabase (persistance) ·
+Webhook compatible n8n (automatisation)

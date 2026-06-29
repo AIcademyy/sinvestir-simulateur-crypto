@@ -1,10 +1,17 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 const NAV_ITEMS = [
-  { label: "Tableau de bord", active: false },
-  { label: "Les simulateurs", active: true },
-  { label: "Mes simulations", active: false },
+  { label: "Tableau de bord", href: "/", disabled: true },
+  { label: "Les simulateurs", href: "/" },
+  { label: "Mes simulations", href: "/mes-simulations" },
 ];
 
 export default function SuiteShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
   return (
     <div className="flex min-h-screen">
       <aside className="hidden lg:flex w-64 flex-col justify-between border-r border-[var(--border)] bg-[var(--bg-elevated)] px-4 py-6">
@@ -18,18 +25,32 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
             </span>
           </div>
           <nav className="flex flex-col gap-1">
-            {NAV_ITEMS.map((item) => (
-              <span
-                key={item.label}
-                className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                  item.active
-                    ? "bg-[var(--blue)]/15 text-[var(--blue)]"
-                    : "text-[var(--text-muted)]"
-                }`}
-              >
-                {item.label}
-              </span>
-            ))}
+            {NAV_ITEMS.map((item) => {
+              const active = item.href === pathname;
+              if (item.disabled) {
+                return (
+                  <span
+                    key={item.label}
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--text-muted)] opacity-50 cursor-not-allowed"
+                  >
+                    {item.label}
+                  </span>
+                );
+              }
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`rounded-lg px-3 py-2 text-sm font-medium ${
+                    active
+                      ? "bg-[var(--blue)]/15 text-[var(--blue)]"
+                      : "text-[var(--text-muted)] hover:text-white"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
         <span className="px-3 text-xs text-[var(--text-muted)]">Gérer mon compte</span>

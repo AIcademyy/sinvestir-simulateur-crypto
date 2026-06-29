@@ -78,6 +78,20 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
     [coins, coinId]
   );
 
+  // Persist + emit an automation event once the user settles on a result,
+  // rather than on every keystroke while they're still tweaking inputs.
+  useEffect(() => {
+    if (!result) return;
+    const timer = setTimeout(() => {
+      fetch("/api/simulations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...result, frequency, startDate, endDate }),
+      }).catch(() => {});
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [result, frequency, startDate, endDate]);
+
   const investedShare = result && result.finalCapital > 0
     ? Math.min(100, (result.invested / Math.max(result.finalCapital, result.invested)) * 100)
     : 0;
