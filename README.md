@@ -20,6 +20,10 @@ Aucune clé d'API n'est nécessaire (CoinGecko public API).
   dans une `<iframe>` depuis `sinvestir.fr`.
 - `/mes-simulations` — historique des simulations, lien réel dans la sidebar (pas juste un libellé
   statique). Fonctionne en lecture vide tant que Supabase n'est pas configuré (voir plus bas).
+  Permet de cocher jusqu'à 3 simulations passées pour les comparer côte à côte.
+- `/comparateur` — comparateur multi-actifs : superpose 2 à 4 cryptos sur le même graphique pour
+  les mêmes paramètres d'investissement, avec un tableau de synthèse (investi, capital final,
+  performance par actif).
 
 ## Ce que fait le simulateur
 
@@ -105,6 +109,18 @@ contient les deux livrables prêts à brancher sur le workflow n8n existant :
   Supabase `Get All Rows` filtré par `lead_email` → Code → Sheets / Email), avec le code du nœud
   Code qui génère les lignes du tableau HTML.
 
+### Lien partageable & cache de prix (bonus 3)
+
+- **Lien partageable** : les paramètres de simulation (`coin`, `amount`, `freq`, `from`, `to`)
+  sont synchronisés dans l'URL (`src/components/Simulator.tsx`). Le bouton "🔗 Copier le lien de
+  cette simulation" copie l'URL courante — un conseiller peut envoyer une simulation précise à un
+  client sans qu'il ait à tout ressaisir.
+- **Cache de prix partagé** (`src/lib/coingecko.ts`, table `price_cache`) : avant d'appeler
+  CoinGecko, on regarde si la série de prix pour ce couple `(actif, période)` a déjà été récupérée
+  dans l'heure précédente par n'importe quel visiteur, et on la sert depuis Supabase si oui. Sans
+  Supabase configuré, ce cache est simplement ignoré (l'app retombe sur le cache `fetch` natif de
+  Next.js, par instance) — aucun comportement cassé.
+
 ## Pour une intégration réelle dans la suite
 
 - Le composant `Simulator` n'a aucune dépendance à l'auth ou à Supabase : il suffirait de le
@@ -118,18 +134,20 @@ contient les deux livrables prêts à brancher sur le workflow n8n existant :
 
 ## Suggestions d'amélioration pour S'investir
 
-- **Comparaison de scénarios sauvegardés** : la sauvegarde existe désormais (voir section bonus
-  ci-dessus) — l'étape suivante logique est de permettre de nommer 2-3 simulations et de les
-  comparer côte à côte (ex. DCA mensuel vs. lump sum sur le même actif), plutôt que de les lister
-  une par une.
-- **Comparateur multi-actifs** : superposer 2-3 cryptos (ou crypto vs. ETF/PEA) sur le même
-  graphique, pour répondre à "j'aurais dû investir où ?" sans ressaisir la simulation trois fois.
-- **Partage/export** : un lien public (paramètres encodés dans l'URL) ou export PDF du résultat,
-  utile pour un conseiller qui veut envoyer une simulation à un client — et un bon levier
-  d'acquisition (chaque lien partagé ramène du trafic vers `simulateurs.sinvestir.fr`).
-- **Cache des séries de prix côté infra** (Supabase ou KV) plutôt qu'au niveau du `fetch` Next :
-  utile si plusieurs simulateurs (crypto, mais aussi futurs simulateurs d'actifs cotés) consomment
-  les mêmes séries de prix — évite de re-payer le rate-limit CoinGecko à chaque utilisateur.
+Quatre des suggestions ci-dessous sont passées du stade d'idée à celui de fonctionnalité
+**construite et vérifiée** dans ce repo (comparateur de scénarios, comparateur multi-actifs, lien
+partageable, cache de prix) — voir les sections bonus plus haut. La cinquième (HubSpot) reste à
+l'état de blueprint documenté, faute d'accès à un compte HubSpot pour la tester réellement :
+
+- ~~**Comparaison de scénarios sauvegardés**~~ → fait, voir `/mes-simulations`.
+- ~~**Comparateur multi-actifs**~~ → fait, voir `/comparateur`.
+- ~~**Partage/export**~~ → fait (lien partageable), voir le bouton sous les résultats du simulateur.
+- ~~**Cache des séries de prix côté infra**~~ → fait, voir `price_cache` dans Supabase.
+- **Lead scoring HubSpot** : le même webhook qui alimente le Google Sheet et l'email pourrait créer
+  ou mettre à jour un contact HubSpot avec l'actif/le montant simulés, pour prioriser les relances
+  commerciales sur les leads ayant simulé un montant significatif plutôt que de traiter tous les
+  leads simulateur de la même façon. Câblage détaillé dans
+  [`automation/README.md`](./automation/README.md#3-lead-scoring-hubspot-bonus-non-testé--pas-de-compte-hubspot-disponible).
 
 ## Stack
 

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const NAV_ITEMS = [
   { label: "Tableau de bord", href: "/", disabled: true },
   { label: "Les simulateurs", href: "/" },
+  { label: "Comparateur", href: "/comparateur" },
   { label: "Mes simulations", href: "/mes-simulations" },
 ];
 

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Simulator from "@/components/Simulator";
 
 /**
@@ -7,7 +8,9 @@ import Simulator from "@/components/Simulator";
 export default function EmbedPage() {
   return (
     <div className="p-4">
-      <Simulator embedded />
+      <Suspense>
+        <Simulator embedded />
+      </Suspense>
     </div>
   );
 }

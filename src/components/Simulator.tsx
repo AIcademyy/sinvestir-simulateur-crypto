@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
   CartesianGrid,
@@ -27,17 +28,24 @@ function todayMinus(days: number): string {
 }
 
 export default function Simulator({ embedded = false }: { embedded?: boolean }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [coins, setCoins] = useState<Coin[]>([]);
-  const [coinId, setCoinId] = useState("bitcoin");
-  const [amount, setAmount] = useState(100);
-  const [frequency, setFrequency] = useState<Frequency>("monthly");
-  const [startDate, setStartDate] = useState(todayMinus(360));
-  const [endDate, setEndDate] = useState(todayMinus(0));
+  const [coinId, setCoinId] = useState(searchParams.get("coin") || "bitcoin");
+  const [amount, setAmount] = useState(Number(searchParams.get("amount")) || 100);
+  const [frequency, setFrequency] = useState<Frequency>(
+    (searchParams.get("freq") as Frequency) || "monthly"
+  );
+  const [startDate, setStartDate] = useState(searchParams.get("from") || todayMinus(360));
+  const [endDate, setEndDate] = useState(searchParams.get("to") || todayMinus(0));
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [reportStatus, setReportStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/coins")
@@ -74,6 +82,24 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
       controller.abort();
     };
   }, [coinId, amount, frequency, startDate, endDate]);
+
+  // Keep the URL in sync so the current simulation is shareable as a link.
+  useEffect(() => {
+    const params = new URLSearchParams({
+      coin: coinId,
+      amount: String(amount),
+      freq: frequency,
+      from: startDate,
+      to: endDate,
+    });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [coinId, amount, frequency, startDate, endDate, pathname, router]);
+
+  async function copyShareLink() {
+    await navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  }
 
   const selectedCoin = useMemo(
     () => coins.find((c) => c.id === coinId),
@@ -329,7 +355,17 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                   </ResponsiveContainer>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-[var(--border)] flex flex-col sm:flex-row gap-2">
+                <div className="mt-5 pt-4 border-t border-[var(--border)] flex justify-end">
+                  <button
+                    type="button"
+                    onClick={copyShareLink}
+                    className="text-xs font-medium text-[var(--blue)] hover:underline"
+                  >
+                    {linkCopied ? "Lien copié !" : "🔗 Copier le lien de cette simulation"}
+                  </button>
+                </div>
+
+                <div className="mt-3 flex flex-col sm:flex-row gap-2">
                   <input
                     type="email"
                     placeholder="votre@email.com"

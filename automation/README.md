@@ -88,6 +88,28 @@ moment de l'event :
    - **HTML** : coller le contenu de [`lead-report-email.html`](./lead-report-email.html)
      (les `{{ $json.… }}` qu'il contient sont résolus automatiquement par n8n).
 
+## 3. Lead scoring HubSpot (bonus, non testé — pas de compte HubSpot disponible)
+
+Même principe que le Google Sheet : un nœud **HubSpot** branché directement sur le **Webhook**
+(pas besoin du Code/Supabase de l'étape 2, l'event suffit).
+
+1. Ajoute un nœud **HubSpot** → resource `Contact`, opération `Create or Update`.
+2. **Email** : `{{ $json.body.payload.leadEmail }}` (ne créer/mettre à jour que si ce champ est
+   rempli — ajoute le même nœud **IF** que pour l'email).
+3. Mappe des propriétés HubSpot custom (à créer une fois dans HubSpot : Paramètres → Propriétés) :
+
+   | Propriété HubSpot (custom)     | Valeur (expression n8n)                          |
+   |----------------------------------|---------------------------------------------------|
+   | `derniere_simulation_actif`     | `{{ $json.body.payload.coin.symbol }}`           |
+   | `derniere_simulation_montant`   | `{{ $json.body.payload.invested }}`              |
+   | `derniere_simulation_perf`      | `{{ $json.body.payload.performancePct }}`        |
+   | `nb_simulations_total`          | (mis à jour via une formule HubSpot, ou en relisant Supabase comme à l'étape 2) |
+
+4. Idée de scoring : créer une **Liste active** HubSpot filtrée sur `derniere_simulation_actif`
+   contient "BTC" ou "ETH" et `derniere_simulation_montant` > un seuil, pour prioriser les
+   relances commerciales sur les leads ayant simulé un montant significatif plutôt que de traiter
+   tous les leads simulateur de la même façon.
+
 ## Pourquoi cette architecture
 
 - Le webhook reste minimal et rapide (pas de logique de reporting côté Next.js) — toute
