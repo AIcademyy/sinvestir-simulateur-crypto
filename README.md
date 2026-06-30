@@ -15,15 +15,34 @@ Ouvrir [http://localhost:3000](http://localhost:3000).
 
 Aucune clé d'API n'est nécessaire (CoinGecko public API).
 
-- `/` — page complète, dans la mise en page de la suite (sidebar + header, comme `simulateurs.sinvestir.fr`).
-- `/embed` — version dépouillée du même composant, sans sidebar ni header, pensée pour être chargée
-  dans une `<iframe>` depuis `sinvestir.fr`.
-- `/mes-simulations` — historique des simulations, lien réel dans la sidebar (pas juste un libellé
-  statique). Fonctionne en lecture vide tant que Supabase n'est pas configuré (voir plus bas).
-  Permet de cocher jusqu'à 3 simulations passées pour les comparer côte à côte.
-- `/comparateur` — comparateur multi-actifs : superpose 2 à 4 cryptos sur le même graphique pour
-  les mêmes paramètres d'investissement, avec un tableau de synthèse (investi, capital final,
-  performance par actif).
+### ⚠️ Lire avant de juger le code : démo vs. livrable réel
+
+Ce repo contient **deux choses de nature différente**, et c'est volontaire :
+
+1. **Le livrable réel** — `src/components/Simulator.tsx` (+ sa route `/simulateur-crypto`) et
+   `src/components/Comparator.tsx` (+ sa route `/comparateur-crypto`). C'est *tout* ce dont
+   S'investir aurait besoin pour intégrer ces outils dans `simulateurs.sinvestir.fr` : une carte
+   dans leur grille existante "Les simulateurs" / "Les comparateurs", qui pointe vers ces pages.
+   Ces deux composants n'ont aucune dépendance à un état global ni à une sidebar particulière.
+2. **L'enrobage de démo** — `/`, `/comparateurs`, `SuiteShell`, `SimulatorCard` : une reconstitution
+   fidèle de leur sidebar et de leurs grilles "Les simulateurs"/"Les comparateurs" (cartes
+   désactivées pour leurs outils existants — intérêts composés, inflation, PEA, etc. — d'après
+   leurs captures d'écran), **uniquement pour que la démo se présente comme si elle vivait déjà
+   dans la suite**. Ce n'est pas du code à copier chez eux : ils ont déjà cette coquille dans leur
+   vraie app Nuxt/Next, avec leurs vraies données utilisateur.
+
+- `/` — grille "Les simulateurs" (réplique de démo), avec la carte **Simulateur Crypto-monnaie**
+  (seule carte cliquable, badge "NOUVEAU") menant à `/simulateur-crypto`.
+- `/simulateur-crypto` — le simulateur lui-même, le vrai livrable.
+- `/comparateurs` — grille "Les comparateurs" (réplique de démo), avec la carte **Comparateur de
+  performance crypto** menant à `/comparateur-crypto`. (Leur grille a déjà un "Comparateur Crypto"
+  pour choisir une plateforme d'échange — le nôtre compare la performance de plusieurs actifs entre
+  eux, c'est un outil différent, nommé différemment exprès pour ne pas laisser croire à un doublon.)
+- `/comparateur-crypto` — le comparateur multi-actifs lui-même, le vrai livrable.
+- `/embed` — version nue du simulateur, sans sidebar ni header, pensée pour tourner dans une
+  `<iframe>` directement sur `sinvestir.fr` (pas dans la suite `simulateurs.sinvestir.fr`).
+- `/mes-simulations` — historique des simulations (fonctionnel avec Supabase configuré), avec
+  comparateur de scénarios sauvegardés.
 
 ## Ce que fait le simulateur
 
@@ -53,9 +72,9 @@ Reprend la logique du simulateur d'origine :
   embarquer.
 - **Composant `Simulator` unique, autonome et réutilisable** (`src/components/Simulator.tsx`) :
   une seule prop (`embedded`) pour basculer entre la mise en page "suite" et la mise en page
-  "embed nu". C'est ce même composant qui est monté sur `/` (avec `SuiteShell`, qui imite la
-  sidebar/header de `simulateurs.sinvestir.fr`) et sur `/embed`. Aucune dépendance à un état
-  global ni à Supabase : il pourrait être copié tel quel dans le repo de la suite.
+  "embed nu". C'est ce même composant qui est monté sur `/simulateur-crypto` (avec `SuiteShell`,
+  qui imite la sidebar/header de `simulateurs.sinvestir.fr`) et sur `/embed`. Aucune dépendance à
+  un état global ni à Supabase : il pourrait être copié tel quel dans le repo de la suite.
 - **Recharts** pour le graphique — léger, déclaratif, pas de canvas custom à maintenir.
 - **Design** : thème sombre, police Lexend, accents bleu (`#2563eb` / dégradé `#0049c6` →
   `#04265f`) et or (`#f5c542`), cards arrondies avec en-tête dégradé — repris directement de
@@ -123,14 +142,21 @@ contient les deux livrables prêts à brancher sur le workflow n8n existant :
 
 ## Pour une intégration réelle dans la suite
 
-- Le composant `Simulator` n'a aucune dépendance à l'auth ou à Supabase : il suffirait de le
-  déplacer dans le repo Nuxt/Next de la suite et de le brancher sur leur système de design (boutons,
-  `Card`, etc.) au lieu des classes Tailwind ad hoc utilisées ici.
-- Pour l'embed sur `sinvestir.fr`, `/embed` est conçu pour tourner dans une `<iframe>` sans aucune
-  configuration supplémentaire (pas de `X-Frame-Options` restrictif côté Next ici) :
-  ```html
-  <iframe src="https://<deploy>.vercel.app/embed" width="100%" height="900" style="border:0" />
-  ```
+Concrètement, pour faire vivre ça dans `simulateurs.sinvestir.fr` :
+
+1. Copier `src/components/Simulator.tsx` et `src/components/Comparator.tsx` dans leur repo, et les
+   brancher sur leur système de design (boutons, `Card`, etc.) au lieu des classes Tailwind ad hoc
+   utilisées ici. Aucune dépendance à l'auth ni à Supabase, donc rien d'autre à découpler.
+2. Ajouter une carte dans leur grille "Les simulateurs" existante pointant vers la page qui monte
+   `<Simulator />`, et une carte dans "Les comparateurs" pointant vers celle qui monte
+   `<Comparator />`. C'est tout — pas besoin de `SuiteShell`, `SimulatorCard` ni des pages `/` et
+   `/comparateurs` de ce repo : ce sont des reconstitutions de démo, ils ont déjà l'équivalent.
+3. Pour l'embed sur `sinvestir.fr` (site marketing, pas la suite), `/embed` est conçu pour tourner
+   dans une `<iframe>` sans configuration supplémentaire (pas de `X-Frame-Options` restrictif
+   côté Next ici) :
+   ```html
+   <iframe src="https://<deploy>.vercel.app/embed" width="100%" height="900" style="border:0" />
+   ```
 
 ## Suggestions d'amélioration pour S'investir
 
@@ -140,7 +166,7 @@ partageable, cache de prix) — voir les sections bonus plus haut. La cinquième
 l'état de blueprint documenté, faute d'accès à un compte HubSpot pour la tester réellement :
 
 - ~~**Comparaison de scénarios sauvegardés**~~ → fait, voir `/mes-simulations`.
-- ~~**Comparateur multi-actifs**~~ → fait, voir `/comparateur`.
+- ~~**Comparateur multi-actifs**~~ → fait, voir `/comparateur-crypto`.
 - ~~**Partage/export**~~ → fait (lien partageable), voir le bouton sous les résultats du simulateur.
 - ~~**Cache des séries de prix côté infra**~~ → fait, voir `price_cache` dans Supabase.
 - **Lead scoring HubSpot** : le même webhook qui alimente le Google Sheet et l'email pourrait créer
