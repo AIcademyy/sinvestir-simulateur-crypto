@@ -20,7 +20,7 @@ const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [
   { value: "monthly", label: "Par mois" },
 ];
 
-const ASSET_COLORS = ["#2563eb", "#f5c542", "#22c55e", "#a855f7"];
+const ASSET_COLORS = ["#2563eb", "#22c55e", "#a855f7", "#f04438"];
 const MAX_ASSETS = 4;
 
 const eur = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
@@ -100,17 +100,23 @@ export default function Comparator() {
   return (
     <div className="w-full max-w-5xl mx-auto">
       <div className="mb-8 text-center">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-white">COMPARATEUR MULTI-ACTIFS</h1>
-        <p className="mt-2 text-[var(--blue)] font-medium">
+        <div className="flex items-center justify-center gap-4 mb-2">
+          <span className="hidden sm:block flex-1 max-w-24 h-px bg-[var(--border)]" />
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-wide text-white">
+            COMPARATEUR MULTI-ACTIFS
+          </h1>
+          <span className="hidden sm:block flex-1 max-w-24 h-px bg-[var(--border)]" />
+        </div>
+        <p className="text-[var(--blue)] font-medium">
           Comparez la performance de plusieurs cryptoactifs sur la même période
         </p>
       </div>
 
-      <div className="card overflow-hidden mb-6">
-        <div className="bg-gradient-to-r from-[var(--blue-strong)] to-[var(--blue-soft)] px-5 py-3">
+      <div className="mb-6">
+        <div className="section-title">
           <h2 className="text-white font-semibold">Paramètres communs</h2>
         </div>
-        <div className="p-5 flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <span className="font-medium text-white text-sm">
               Actifs à comparer ({selected.length}/{MAX_ASSETS})
@@ -199,11 +205,11 @@ export default function Comparator() {
       </div>
 
       {entries.length > 0 && (
-        <div className="card overflow-hidden">
-          <div className="bg-gradient-to-r from-[var(--blue-strong)] to-[var(--blue-soft)] px-5 py-3">
+        <div>
+          <div className="section-title">
             <h2 className="text-white font-semibold">Résultats comparés</h2>
           </div>
-          <div className="p-5">
+          <div>
             <div className="h-72 mb-6">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
@@ -269,7 +275,7 @@ export default function Comparator() {
                     {entry.result ? (
                       <>
                         <td className="py-2 text-right text-white">{eur.format(entry.result.invested)}</td>
-                        <td className="py-2 text-right text-[var(--gold)]">
+                        <td className="py-2 text-right text-[var(--success)]">
                           {eur.format(entry.result.finalCapital)}
                         </td>
                         <td

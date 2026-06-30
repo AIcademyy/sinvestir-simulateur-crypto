@@ -28,8 +28,8 @@ export default async function MesSimulationsPage() {
         {!supabase && (
           <div className="card p-5 text-sm text-[var(--text-muted)]">
             Persistance désactivée sur cet environnement — configurez{" "}
-            <code className="text-[var(--gold)]">SUPABASE_URL</code> et{" "}
-            <code className="text-[var(--gold)]">SUPABASE_SERVICE_ROLE_KEY</code>{" "}
+            <code className="text-[var(--blue)]">SUPABASE_URL</code> et{" "}
+            <code className="text-[var(--blue)]">SUPABASE_SERVICE_ROLE_KEY</code>{" "}
             pour activer l&apos;historique (voir <code>supabase/schema.sql</code>).
           </div>
         )}

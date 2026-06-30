@@ -73,7 +73,7 @@ export default function SavedSimulationsTable({ simulations }: { simulations: Sa
                   {sim.start_date} → {sim.end_date}
                 </td>
                 <td className="px-4 py-2 text-right text-white">{eur.format(sim.invested)}</td>
-                <td className="px-4 py-2 text-right text-[var(--gold)]">
+                <td className="px-4 py-2 text-right text-[var(--success)]">
                   {eur.format(sim.final_capital)}
                 </td>
                 <td
@@ -95,17 +95,17 @@ export default function SavedSimulationsTable({ simulations }: { simulations: Sa
       </p>
 
       {compared.length >= 2 && (
-        <div className="card overflow-hidden mt-6">
-          <div className="bg-gradient-to-r from-[var(--blue-strong)] to-[var(--blue-soft)] px-5 py-3">
+        <div className="mt-6">
+          <div className="section-title">
             <h2 className="text-white font-semibold">Comparaison de scénarios</h2>
           </div>
-          <div className="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {compared.map((sim) => (
               <div key={sim.id} className="stat-tile">
                 <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-1">
                   {sim.coin_symbol} · {FREQUENCY_LABELS[sim.frequency] ?? sim.frequency}
                 </p>
-                <p className="text-xl font-semibold text-[var(--gold)]">{eur.format(sim.final_capital)}</p>
+                <p className="text-xl font-semibold text-[var(--success)]">{eur.format(sim.final_capital)}</p>
                 <p className="text-xs text-[var(--text-muted)] mt-1">
                   Investi {eur.format(sim.invested)} · {sim.start_date} → {sim.end_date}
                 </p>

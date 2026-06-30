@@ -10,7 +10,7 @@
   --blue: #2563eb;
   --blue-strong: #0049c6;
   --blue-soft: #04265f;
-  --gold: #f5c542;
+  --logo-gold: #c9a227;
   --success: #22c55e;
   --danger: #f04438;
 }
@@ -52,4 +52,38 @@ body {
   border: 1px solid var(--border);
   border-radius: 0.8rem;
   padding: 1rem 1.1rem;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 1.35rem;
+  border-radius: 999px;
+  background: var(--blue);
+}
+
+.btn-pill {
+  border-radius: 999px;
+  padding: 0.75rem 1.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.btn-pill-solid {
+  background: var(--blue);
+  color: #fff;
+}
+
+.btn-pill-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
 }

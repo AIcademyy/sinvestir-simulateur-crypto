@@ -144,26 +144,39 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
     <div className={embedded ? "w-full" : "w-full max-w-5xl mx-auto"}>
       {!embedded && (
         <div className="mb-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-semibold text-white">
-            SIMULATEUR CRYPTO-MONNAIE
-          </h1>
-          <p className="mt-2 text-[var(--blue)] font-medium">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <span className="hidden sm:block flex-1 max-w-24 h-px bg-[var(--border)]" />
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-wide text-white">
+              SIMULATEUR CRYPTO-MONNAIE
+            </h1>
+            <span className="hidden sm:block flex-1 max-w-24 h-px bg-[var(--border)]" />
+          </div>
+          <p className="text-[var(--blue)] font-medium">
             Estimez la performance d&apos;un investissement en cryptoactifs sur données historiques
           </p>
           <p className="mt-2 text-sm text-[var(--text-muted)] max-w-2xl mx-auto">
-            Cet outil s&apos;appuie exclusivement sur des données de marché passées. Il s&apos;agit
-            d&apos;un outil pédagogique : les performances passées ne préjugent pas des performances
-            futures, et les cryptoactifs sont des actifs très volatils.
+            Comment un investissement en crypto-monnaie aurait évolué dans le temps ? Grâce au
+            simulateur S&apos;investir Crypto, projetez la valeur d&apos;un placement unique ou
+            programmé selon vos paramètres.
           </p>
+          <div className="card mt-5 max-w-2xl mx-auto px-4 py-3 flex items-start gap-3 text-left">
+            <span className="text-[var(--blue)] mt-0.5">ⓘ</span>
+            <p className="text-xs text-[var(--text-muted)]">
+              Cet outil a uniquement une vocation pédagogique et illustrative. Il s&apos;appuie sur
+              des données de marché historiques et ne constitue ni un conseil en investissement, ni
+              une prévision de performance, ni une recommandation de placement. Les cryptoactifs
+              sont des actifs très volatils.
+            </p>
+          </div>
         </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
-        <div className="card overflow-hidden">
-          <div className="bg-gradient-to-r from-[var(--blue-strong)] to-[var(--blue-soft)] px-5 py-3">
+        <div>
+          <div className="section-title">
             <h2 className="text-white font-semibold">Simulation</h2>
           </div>
-          <div className="p-5 flex flex-col gap-4">
+          <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-1.5 text-sm">
               <span className="font-medium text-white">Actif numérique</span>
               <select
@@ -235,12 +248,12 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
           </div>
         </div>
 
-        <div className="card overflow-hidden">
-          <div className="bg-gradient-to-r from-[var(--blue-strong)] to-[var(--blue-soft)] px-5 py-3">
+        <div>
+          <div className="section-title">
             <h2 className="text-white font-semibold">Vos résultats</h2>
           </div>
 
-          <div className="p-5">
+          <div>
             {error && (
               <p className="text-[var(--danger)] text-sm mb-4">{error}</p>
             )}
@@ -251,7 +264,7 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                   <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">
                     Capital final
                   </p>
-                  <p className="text-2xl font-semibold text-[var(--gold)]">
+                  <p className="text-2xl font-semibold text-white">
                     {eur.format(result.finalCapital)}
                   </p>
                   <div className="mt-3 h-2 rounded-full bg-[var(--bg)] overflow-hidden flex">
@@ -260,13 +273,15 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                       style={{ width: `${investedShare}%` }}
                     />
                     <div
-                      className="h-full bg-[var(--gold)]"
+                      className="h-full bg-[var(--success)]"
                       style={{ width: `${100 - investedShare}%` }}
                     />
                   </div>
                   <p className="mt-2 text-xs text-[var(--text-muted)]">
-                    Somme investie {eur.format(result.invested)} · Intérêts/gains{" "}
-                    {eur.format(result.finalCapital - result.invested)}
+                    Somme investie {eur.format(result.invested)} ·{" "}
+                    <span className="text-[var(--success)]">
+                      Gains nets {eur.format(result.finalCapital - result.invested)}
+                    </span>
                   </p>
                 </div>
 
@@ -347,7 +362,7 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                       <Line
                         type="monotone"
                         dataKey="value"
-                        stroke="var(--gold)"
+                        stroke="var(--success)"
                         strokeWidth={2}
                         dot={false}
                       />
@@ -355,35 +370,40 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
                   </ResponsiveContainer>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-[var(--border)] flex justify-end">
-                  <button
-                    type="button"
-                    onClick={copyShareLink}
-                    className="text-xs font-medium text-[var(--blue)] hover:underline"
-                  >
-                    {linkCopied ? "Lien copié !" : "🔗 Copier le lien de cette simulation"}
-                  </button>
-                </div>
-
-                <div className="mt-3 flex flex-col sm:flex-row gap-2">
-                  <input
-                    type="email"
-                    placeholder="votre@email.com"
-                    className="input-field flex-1"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setReportStatus("idle");
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={sendReport}
-                    disabled={!email || reportStatus === "sending"}
-                    className="rounded-lg bg-[var(--blue)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50 whitespace-nowrap"
-                  >
-                    {reportStatus === "sending" ? "Envoi…" : "Recevoir mon rapport par email"}
-                  </button>
+                <div className="mt-6 pt-5 border-t border-[var(--border)]">
+                  <div className="flex flex-col sm:flex-row gap-2 mb-3">
+                    <input
+                      type="email"
+                      placeholder="votre@email.com"
+                      className="input-field flex-1"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setReportStatus("idle");
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      type="button"
+                      onClick={sendReport}
+                      disabled={!email || reportStatus === "sending"}
+                      className="btn-pill btn-pill-solid disabled:opacity-50"
+                    >
+                      {reportStatus === "sending" ? "Envoi…" : "Recevoir mon rapport par email"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={copyShareLink}
+                      className="btn-pill btn-pill-outline"
+                    >
+                      {linkCopied ? "Lien copié !" : "Partager cette simulation"}
+                    </button>
+                  </div>
+                  <p className="mt-2 text-[11px] text-[var(--text-muted)]">
+                    Sur votre espace client S&apos;investir, ce champ serait pré-rempli avec
+                    l&apos;email de votre compte.
+                  </p>
                 </div>
                 {reportStatus === "sent" && (
                   <p className="mt-2 text-xs text-[var(--success)]">
@@ -405,7 +425,7 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
         </div>
       </div>
 
-      {!embedded && selectedCoin && (
+      {embedded && selectedCoin && (
         <p className="mt-4 text-center text-xs text-[var(--text-muted)]">
           Données de marché historiques fournies par CoinGecko. Simulation à but pédagogique,
           ne constitue pas un conseil en investissement.
