@@ -14,16 +14,20 @@ const NAV_ITEMS = [
 
 function Logo() {
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
       <span
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-bold"
+        className="flex h-7 w-7 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-lg text-sm sm:text-lg font-bold"
         style={{ color: "var(--logo-gold)", border: "1px solid var(--logo-gold)" }}
       >
         S
       </span>
-      <div className="leading-none">
-        <p className="text-[10px] tracking-[0.25em] text-[var(--text-muted)]">S&apos;INVESTIR</p>
-        <p className="text-sm font-semibold tracking-wide text-white">SIMULATEURS</p>
+      <div className="leading-none min-w-0">
+        <p className="hidden sm:block text-[10px] tracking-[0.25em] text-[var(--text-muted)]">
+          S&apos;INVESTIR
+        </p>
+        <p className="text-xs sm:text-sm font-semibold tracking-wide text-white truncate">
+          SIMULATEURS
+        </p>
       </div>
     </div>
   );
@@ -103,7 +107,7 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen p-5 gap-5">
+    <div className="flex min-h-screen p-2 sm:p-5 gap-2 sm:gap-5">
       <aside
         className="hidden lg:flex w-64 shrink-0 sticky top-5 h-[calc(100vh-2.5rem)] flex-col justify-between rounded-2xl px-4 py-6 shadow-xl"
         style={{
@@ -133,13 +137,13 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+        <header className="flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Ouvrir le menu"
-              className="lg:hidden flex h-9 w-9 items-center justify-center rounded-lg text-xl text-white"
+              className="lg:hidden flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg text-white"
               style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
             >
               ⋮
@@ -148,9 +152,10 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
           </div>
           <a
             href="https://sinvestir.fr"
-            className="text-sm font-medium text-[var(--blue)] hover:underline"
+            className="shrink-0 text-xs sm:text-sm font-medium text-[var(--blue)] hover:underline whitespace-nowrap"
           >
-            Découvrir S&apos;investir →
+            <span className="sm:hidden">S&apos;investir →</span>
+            <span className="hidden sm:inline">Découvrir S&apos;investir →</span>
           </a>
         </header>
         <main className="flex-1 px-4 sm:px-6 py-10">{children}</main>
