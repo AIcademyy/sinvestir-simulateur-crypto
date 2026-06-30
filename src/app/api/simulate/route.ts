@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchPriceHistory, fetchTopCoins } from "@/lib/coingecko";
+import { fetchPriceHistory } from "@/lib/coingecko";
 import { runSimulation } from "@/lib/simulate";
 import { Frequency } from "@/lib/types";
 
@@ -12,10 +12,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Corps de requête invalide" }, { status: 400 });
   }
 
-  const { coinId, amount, frequency, startDate, endDate } = body as Record<string, unknown>;
+  const { coinId, coinSymbol, coinName, amount, frequency, startDate, endDate } =
+    body as Record<string, unknown>;
 
   if (
     typeof coinId !== "string" ||
+    !coinId ||
     typeof amount !== "number" ||
     !Number.isFinite(amount) ||
     amount <= 0 ||
@@ -35,21 +37,24 @@ export async function POST(request: Request) {
   }
 
   try {
-    const [coins, priceSeries] = await Promise.all([
-      fetchTopCoins(60),
-      fetchPriceHistory(coinId, startDate, endDate),
-    ]);
+    const priceSeries = await fetchPriceHistory(coinId, startDate, endDate);
 
-    const coin = coins.find((c) => c.id === coinId);
-    if (!coin) {
-      return NextResponse.json({ error: "Actif inconnu" }, { status: 404 });
-    }
     if (priceSeries.length === 0) {
       return NextResponse.json(
         { error: "Aucune donnée de marché pour cette période" },
         { status: 422 }
       );
     }
+
+    // coinSymbol/coinName come from the asset search box (CoinGecko's full
+    // 17k+ coin list has no per-coin market data, so the client already has
+    // the display label — no need to re-resolve it against a market-cap
+    // list here, which would artificially cap which assets are usable).
+    const coin = {
+      id: coinId,
+      symbol: typeof coinSymbol === "string" && coinSymbol ? coinSymbol.toUpperCase() : coinId.toUpperCase(),
+      name: typeof coinName === "string" && coinName ? coinName : coinId,
+    };
 
     const result = runSimulation(
       coin,

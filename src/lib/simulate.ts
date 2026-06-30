@@ -29,7 +29,7 @@ function buildContributionDates(startMs: number, endMs: number, frequency: Frequ
 }
 
 export function runSimulation(
-  coin: Coin,
+  coin: Pick<Coin, "id" | "symbol" | "name">,
   amount: number,
   frequency: Frequency,
   startDate: string,

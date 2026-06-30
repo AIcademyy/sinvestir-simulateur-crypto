@@ -48,8 +48,9 @@ Ce repo contient **deux choses de nature différente**, et c'est volontaire :
 
 Reprend la logique du simulateur d'origine :
 
-- **Actif numérique** : sélection parmi les ~60 plus grosses cryptomonnaies par capitalisation
-  (liste dynamique via l'API CoinGecko, pas une liste figée en dur).
+- **Actif numérique** : champ de recherche avec autocomplétion (`/api/coins/search`) interrogeant
+  la liste complète CoinGecko — **17 000+ actifs**, au-delà des "plus de 7 000" annoncés par le
+  simulateur d'origine. Pas de liste figée en dur ni de plafond arbitraire.
 - **Montant** par versement, en euros.
 - **Fréquence** : investissement unique, ou DCA (par jour / semaine / mois).
 - **Période** : dates de début et de fin.

@@ -18,6 +18,48 @@ export async function fetchTopCoins(limit = 60): Promise<Coin[]> {
   }));
 }
 
+/**
+ * Full CoinGecko coin list (17 000+ entries, id/symbol/name only, no market
+ * data) — the free, no-key endpoint behind the asset search box. Cached 24h
+ * since new listings are rare; it's ~2MB of JSON, too big to re-fetch per
+ * keystroke.
+ */
+async function fetchAllCoinsList(): Promise<{ id: string; symbol: string; name: string }[]> {
+  const url = `${BASE}/coins/list`;
+  const res = await fetch(url, { next: { revalidate: 86400 } });
+  if (!res.ok) throw new Error(`CoinGecko coins/list failed: ${res.status}`);
+  return res.json();
+}
+
+/** Searches the full coin list by symbol/name substring, best matches first. */
+export async function searchCoins(query: string, limit = 20): Promise<Coin[]> {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+
+  const all = await fetchAllCoinsList();
+  const scored = all
+    .map((c) => {
+      const symbol = c.symbol.toLowerCase();
+      const name = c.name.toLowerCase();
+      let score = -1;
+      if (symbol === q) score = 0;
+      else if (symbol.startsWith(q)) score = 1;
+      else if (name.startsWith(q)) score = 2;
+      else if (name.includes(q) || symbol.includes(q)) score = 3;
+      return { c, score };
+    })
+    .filter((r) => r.score >= 0)
+    .sort((a, b) => a.score - b.score || a.c.name.length - b.c.name.length)
+    .slice(0, limit);
+
+  return scored.map(({ c }) => ({
+    id: c.id,
+    symbol: c.symbol.toUpperCase(),
+    name: c.name,
+    image: "",
+  }));
+}
+
 export interface PricePoint {
   timestamp: number;
   price: number;

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   CartesianGrid,
   Line,
@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import AssetSearch from "@/components/AssetSearch";
 import { Coin, Frequency, SimulationResult } from "@/lib/types";
 
 const FREQUENCY_OPTIONS: { value: Frequency; label: string }[] = [
@@ -32,8 +33,12 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [coins, setCoins] = useState<Coin[]>([]);
-  const [coinId, setCoinId] = useState(searchParams.get("coin") || "bitcoin");
+  const [coin, setCoin] = useState<Coin>({
+    id: searchParams.get("coin") || "bitcoin",
+    symbol: searchParams.get("symbol") || "BTC",
+    name: searchParams.get("name") || "Bitcoin",
+    image: "",
+  });
   const [amount, setAmount] = useState(Number(searchParams.get("amount")) || 100);
   const [frequency, setFrequency] = useState<Frequency>(
     (searchParams.get("freq") as Frequency) || "monthly"
@@ -48,13 +53,6 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
   const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
-    fetch("/api/coins")
-      .then((r) => r.json())
-      .then((data) => setCoins(data.coins ?? []))
-      .catch(() => setError("Impossible de charger la liste des actifs."));
-  }, []);
-
-  useEffect(() => {
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setLoading(true);
@@ -64,7 +62,15 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
     fetch("/api/simulate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ coinId, amount, frequency, startDate, endDate }),
+      body: JSON.stringify({
+        coinId: coin.id,
+        coinSymbol: coin.symbol,
+        coinName: coin.name,
+        amount,
+        frequency,
+        startDate,
+        endDate,
+      }),
       signal: controller.signal,
     })
       .then(async (r) => {
@@ -81,30 +87,27 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
       clearTimeout(timer);
       controller.abort();
     };
-  }, [coinId, amount, frequency, startDate, endDate]);
+  }, [coin, amount, frequency, startDate, endDate]);
 
   // Keep the URL in sync so the current simulation is shareable as a link.
   useEffect(() => {
     const params = new URLSearchParams({
-      coin: coinId,
+      coin: coin.id,
+      symbol: coin.symbol,
+      name: coin.name,
       amount: String(amount),
       freq: frequency,
       from: startDate,
       to: endDate,
     });
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [coinId, amount, frequency, startDate, endDate, pathname, router]);
+  }, [coin, amount, frequency, startDate, endDate, pathname, router]);
 
   async function copyShareLink() {
     await navigator.clipboard.writeText(window.location.href);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2000);
   }
-
-  const selectedCoin = useMemo(
-    () => coins.find((c) => c.id === coinId),
-    [coins, coinId]
-  );
 
   // Persist + emit an automation event once the user settles on a result,
   // rather than on every keystroke while they're still tweaking inputs.
@@ -179,17 +182,7 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
           <div className="flex flex-col gap-4">
             <label className="flex flex-col gap-1.5 text-sm">
               <span className="font-medium text-white">Actif numérique</span>
-              <select
-                className="input-field"
-                value={coinId}
-                onChange={(e) => setCoinId(e.target.value)}
-              >
-                {coins.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.symbol})
-                  </option>
-                ))}
-              </select>
+              <AssetSearch value={coin} onSelect={setCoin} />
             </label>
 
             <label className="flex flex-col gap-1.5 text-sm">
@@ -425,7 +418,7 @@ export default function Simulator({ embedded = false }: { embedded?: boolean }) 
         </div>
       </div>
 
-      {embedded && selectedCoin && (
+      {embedded && (
         <p className="mt-4 text-center text-xs text-[var(--text-muted)]">
           Données de marché historiques fournies par CoinGecko. Simulation à but pédagogique,
           ne constitue pas un conseil en investissement.
