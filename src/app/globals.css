@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0e1a;
-  --bg-elevated: #10162a;
+  --bg: #0a0f1a;
+  --bg-elevated: #141e42;
   --bg-card: #131a30;
   --border: #232b45;
   --text: #f4f6fb;
@@ -13,6 +13,10 @@
   --logo-gold: #c9a227;
   --success: #22c55e;
   --danger: #f04438;
+  --sidebar-from: #222630;
+  --sidebar-to: #0b101e;
+  --logout-from: #0245b9;
+  --logout-to: #042b6c;
 }
 
 @theme inline {

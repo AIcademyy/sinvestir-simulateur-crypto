@@ -32,11 +32,11 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen p-3 gap-3">
+    <div className="flex min-h-screen p-5 gap-5">
       <aside
-        className="hidden lg:flex w-64 flex-col justify-between rounded-2xl px-4 py-6 shadow-xl"
+        className="hidden lg:flex w-64 shrink-0 sticky top-5 h-[calc(100vh-2.5rem)] flex-col justify-between rounded-2xl px-4 py-6 shadow-xl"
         style={{
-          background: "linear-gradient(180deg, #232c4a 0%, #141a30 45%, var(--bg) 100%)",
+          background: "linear-gradient(180deg, var(--sidebar-from) 0%, var(--sidebar-to) 100%)",
           border: "1px solid var(--border)",
         }}
       >
@@ -91,7 +91,13 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
           <span className="px-2 py-1 text-xs text-[var(--text-muted)] cursor-default">
             Faire une suggestion
           </span>
-          <button type="button" className="btn-pill btn-pill-solid mt-2 w-full">
+          <button
+            type="button"
+            className="btn-pill mt-2 w-full text-white"
+            style={{
+              background: "linear-gradient(180deg, var(--logout-from), var(--logout-to))",
+            }}
+          >
             Déconnexion
           </button>
         </div>
@@ -107,7 +113,7 @@ export default function SuiteShell({ children }: { children: React.ReactNode }) 
             Découvrir S&apos;investir →
           </a>
         </header>
-        <main className="flex-1 px-4 sm:px-6 py-10 overflow-y-auto">{children}</main>
+        <main className="flex-1 px-4 sm:px-6 py-10">{children}</main>
       </div>
     </div>
   );
