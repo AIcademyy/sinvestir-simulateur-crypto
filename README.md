@@ -142,21 +142,75 @@ contient les deux livrables prêts à brancher sur le workflow n8n existant :
 
 ## Pour une intégration réelle dans la suite
 
-Concrètement, pour faire vivre ça dans `simulateurs.sinvestir.fr` :
+**En une phrase : ils ajoutent une carte dans leur grille existante, et c'est branché.** Pas besoin
+de toucher à leur sidebar, leur auth, ni au reste de leur app — `simulateurs.sinvestir.fr` est déjà
+hébergé sur Vercel, ce repo est donc directement compatible avec leur pipeline de déploiement.
 
-1. Copier `src/components/Simulator.tsx` et `src/components/Comparator.tsx` dans leur repo, et les
-   brancher sur leur système de design (boutons, `Card`, etc.) au lieu des classes Tailwind ad hoc
-   utilisées ici. Aucune dépendance à l'auth ni à Supabase, donc rien d'autre à découpler.
-2. Ajouter une carte dans leur grille "Les simulateurs" existante pointant vers la page qui monte
-   `<Simulator />`, et une carte dans "Les comparateurs" pointant vers celle qui monte
-   `<Comparator />`. C'est tout — pas besoin de `SuiteShell`, `SimulatorCard` ni des pages `/` et
-   `/comparateurs` de ce repo : ce sont des reconstitutions de démo, ils ont déjà l'équivalent.
-3. Pour l'embed sur `sinvestir.fr` (site marketing, pas la suite), `/embed` est conçu pour tourner
-   dans une `<iframe>` sans configuration supplémentaire (pas de `X-Frame-Options` restrictif
-   côté Next ici) :
-   ```html
-   <iframe src="https://<deploy>.vercel.app/embed" width="100%" height="900" style="border:0" />
-   ```
+### Étape 1 — copier deux fichiers (zéro dépendance externe)
+
+```bash
+cp src/components/Simulator.tsx   <repo-suite>/components/
+cp src/components/Comparator.tsx  <repo-suite>/components/
+```
+
+Aucun des deux ne dépend de Supabase, d'un état global ou de `SuiteShell` — juste de `recharts` et
+des routes `/api/coins` + `/api/simulate` (à copier aussi, ce sont de simples route handlers
+Next.js, voir `src/app/api/`). Le style utilise des classes Tailwind isolées dans `globals.css`
+(`var(--blue)`, `.card`, `.btn-pill`, etc.) à remapper sur leurs tokens de design en quelques
+minutes.
+
+### Étape 2 — créer les deux pages cibles
+
+```tsx
+// app/simulateur-crypto/page.tsx
+import Simulator from "@/components/Simulator";
+export default function Page() {
+  return <Simulator />;
+}
+```
+
+```tsx
+// app/comparateur-crypto/page.tsx
+import Comparator from "@/components/Comparator";
+export default function Page() {
+  return <Comparator />;
+}
+```
+
+### Étape 3 — ajouter une carte dans leurs grilles existantes
+
+C'est l'unique vraie modification à faire dans *leur* code : ajouter une entrée à la liste de
+cartes qu'ils ont déjà sur `/les-simulateurs` et `/les-comparateurs` (visible dans leurs
+captures d'écran — ce sont juste des cartes `{ titre, description, href }` répétées) :
+
+```ts
+// dans leur tableau de simulateurs existant
+{
+  title: "Simulateur Crypto-monnaie",
+  description: "Estimez la performance d'un investissement en cryptoactifs.",
+  href: "/simulateur-crypto",
+},
+
+// dans leur tableau de comparateurs existant
+{
+  title: "Comparateur de performance crypto",
+  description: "Comparez la performance de plusieurs cryptoactifs sur une même période.",
+  href: "/comparateur-crypto",
+},
+```
+
+C'est tout. Pas besoin de `SuiteShell`, `SimulatorCard`, ni des pages `/` et `/comparateurs` de ce
+repo : ce sont des reconstitutions de démo (pour qu'on puisse juger le rendu sans accès à leur vrai
+code), ils ont déjà l'équivalent en prod.
+
+### Bonus — embed sur sinvestir.fr (site marketing, pas la suite)
+
+`/embed` est conçu pour tourner dans une `<iframe>` sans configuration supplémentaire (pas de
+`X-Frame-Options` restrictif côté Next ici) :
+
+```html
+<iframe src="https://<deploy>.vercel.app/embed" width="100%" height="900" style="border:0" />
+```
 
 ## Suggestions d'amélioration pour S'investir
 
